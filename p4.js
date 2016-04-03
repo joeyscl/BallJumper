@@ -13,19 +13,6 @@ document.body.appendChild(renderer.domElement);
 //document.addEventListener('mouseDown', onDocumentMouseDown, false);
 //document.addEventListener('mouseDown', onDocumentMouseDown, false);
 
-// setting up the camera:
- var aspect = window.innerWidth/window.innerHeight;
- var camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 20000);
- camera.position.set(300,250,300);
- camera.lookAt(scene.position);	
- scene.add(camera);
-
-// setting controls
- var controls = new THREE.OrbitControls(camera);
- controls.enableDamping = true;
- controls.dampingFactor = 0.25;
- controls.enableZoom = false;
-
   // setting up window resize and adaptation
 function resize() {
 	windowWidth = window.innerWidth;
@@ -34,13 +21,13 @@ function resize() {
 }
 
 
-  // lights
-  light = new THREE.DirectionalLight( 0xffffff );
-  light.position.set( 0, 1, 1 );
-  scene.add( light );
+// lights
+light = new THREE.DirectionalLight( 0xffffff );
+light.position.set( 0, 1, 1 );
+scene.add( light );
 
-  light = new THREE.AmbientLight( 0x222222 );
-  scene.add( light );
+light = new THREE.AmbientLight( 0x222222 );
+scene.add( light );
 
 
 // EVENT LISTENER RESIZE
@@ -48,12 +35,28 @@ window.addEventListener('resize',resize);
 resize();
   
 // add ball/player
-var ballSize = 5;
+var ballSize = 10;
 var geometry = new THREE.SphereGeometry(ballSize, 32, 32);
 var material = new THREE.MeshPhongMaterial( {specular: "#ff5555", color: "#ff0000", emissive: "#ff0000", side: THREE.DoubleSide} );
-var ball = new THREE.MovingMesh(geometry, material);
-ball.position.set(0,0,0);
+var ball = new THREE.MovingMesh(geometry, material, ballSize);
+ball.position.set(0,100,0);
 scene.add(ball);
+
+// setting up the camera:
+var aspect = window.innerWidth/window.innerHeight;
+var camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 20000);
+camera.position.set(100,250,350);
+camera.lookAt(scene.position); 
+ball.add(camera);
+
+// setting controls
+var controls = new THREE.OrbitControls(camera);
+controls.enableDamping = true;
+controls.dampingFactor = 0.25;
+controls.enableZoom = false;
+
+// array to track obstacles
+var obstacles = [];
 
 // floor from p3 used
 var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
@@ -66,9 +69,23 @@ floor.position.y = -1 + ballSize;
 floor.rotation.x = Math.PI / 2;
 scene.add(floor);
 
-  
+obstacles.push(floor);
 
+//test obstacle
+var geometry = new THREE.BoxGeometry( 100, 40, 100 );
+var material = new THREE.MeshNormalMaterial();
+var cube = new THREE.Mesh( geometry, material );
+cube.position.set(100,30,0);
+scene.add(cube);
+obstacles.push(cube);
 
+//test obstacle
+var geometry = new THREE.BoxGeometry( 100, 40, 100 );
+var material = new THREE.MeshNormalMaterial();
+var cube = new THREE.Mesh( geometry, material );
+cube.position.set(0,150,0);
+scene.add(cube);
+obstacles.push(cube);
 	
 // first person camera. 
 THREE.FirstPersonControls = function (){
@@ -85,25 +102,18 @@ var clock = new THREE.Clock(true);
 function keyboardCallBack() {
 	 var delta = clock.getDelta();
 	 var distanceMoved = 100 * delta;
-	 var jumpDistance = 100 * delta
 
 	 if(keyboard.pressed("W")){
 	 	 ball.translateZ (-distanceMoved);
 	 }
-	 if(keyboard.pressed("A")){
-	 	ball.translateX( -distanceMoved);
+	 if(keyboard.pressed("A") && ball.collisions.x == 0){
+	 	ball.translateX(-distanceMoved);
    }
    if(keyboard.pressed("S")){
       ball.translateZ (distanceMoved);
 	 }
-   if(keyboard.pressed("D")){
+   if(keyboard.pressed("D") && ball.collisions.x == 0){
    	ball.translateX(distanceMoved);	 
-  }
-  if(keyboard.pressed("Q")){
-    ball.translateY(jumpDistance);  	 
-  }
-  if (keyboard.pressed("R")){
-   	ball.translateY(-jumpDistance);  	 
   }
 }
 
