@@ -1,8 +1,8 @@
-THREE.MovingMesh = function ( geometry, material, size) {
+THREE.PlayerMesh = function ( geometry, material, size) {
 
 	THREE.Mesh.call( this, geometry, material );
 
-	this.type = 'MovingMesh';
+	this.type = 'PlayerMesh';
 
 	this.geometry = geometry !== undefined ? geometry : new THREE.Geometry();
 	this.material = material !== undefined ? material : new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff } );
@@ -16,8 +16,7 @@ THREE.MovingMesh = function ( geometry, material, size) {
 	this.maxJumps = 2;		// number of jumps allowed
 	this.jumpCounter = 0;	// current number of jumps
 	this.gravity = -10;
-	this.accel = 20;		// acceleration in other directions
-	this.maxV = 10		// max velocity in any direction
+	this.maxV = 450		// max velocity in any direction
 
 	this.floorHeight = this.size*2 - 1;
 	this.platformHeight = this.floorHeight;
@@ -38,7 +37,23 @@ THREE.MovingMesh = function ( geometry, material, size) {
 
     //rays for checking collision in Z
     new THREE.Vector3(0, 0, -1),
-    new THREE.Vector3(0, 0, 1),
+    new THREE.Vector3(0, 0, 1), 
+
+    // diagonal directions
+    new THREE.Vector3(1, 0, 1),
+    new THREE.Vector3(1, 0, -1),
+    new THREE.Vector3(-1, 0, 1),
+    new THREE.Vector3(-1, 0, -1),
+
+    new THREE.Vector3(0, 1, 1),
+    new THREE.Vector3(0, 1, -1),
+    new THREE.Vector3(0, -1, 1),
+    new THREE.Vector3(0, -1, -1),
+
+    new THREE.Vector3(1, 1, 0),
+    new THREE.Vector3(1, -1, 0),
+    new THREE.Vector3(-1, 1, 0),
+    new THREE.Vector3(-1, 1, 0)
 	];
 
 	// And the "RayCaster", able to test for intersections
@@ -48,10 +63,10 @@ THREE.MovingMesh = function ( geometry, material, size) {
 	this.updateMorphTargets();
 };
 
-THREE.MovingMesh.prototype = Object.create( THREE.Mesh.prototype);
-THREE.MovingMesh.prototype.constructor = THREE.MovingMesh;
+THREE.PlayerMesh.prototype = Object.create( THREE.Mesh.prototype);
+THREE.PlayerMesh.prototype.constructor = THREE.PlayerMesh;
 
-THREE.MovingMesh.prototype.jump = function () {
+THREE.PlayerMesh.prototype.jump = function () {
 	var Vy = this.velocity.y
 	if (this.jumpCounter < this.maxJumps) {
 		this.velocity.setY(300);
@@ -59,14 +74,14 @@ THREE.MovingMesh.prototype.jump = function () {
 	}	
 }
 
-THREE.MovingMesh.prototype.updateVelocity = function () {
-	var Vx = this.velocity.x;
-	var Vy = this.velocity.y + this.gravity;
-	var Vz = this.velocity.z;
+THREE.PlayerMesh.prototype.updateVelocity = function () {
+	// var Vx = this.velocity.x;
+	var Vy = Math.min(this.velocity.y + this.gravity, this.maxV);
+	// var Vz = this.velocity.z;
 
-	var Cx = this.collisions.x;
+	// var Cx = this.collisions.x;
 	var Cy = this.collisions.y;
-	var Cz = this.collisions.z;
+	// var Cz = this.collisions.z;
 
 	// change velocities to 0 when object hits obstacle
 	if (Cy == -1 && Vy <= 0) {			// collision with floor
@@ -78,31 +93,31 @@ THREE.MovingMesh.prototype.updateVelocity = function () {
 		this.velocity.setY(Vy);
 	}
 
-	if (Cx == -1 && Vx <= 0) {
-		this.velocity.setX(0);
-	} else if (Cx == 1 && Vx >= 0) {
-		this.velocity.setX(0);
-	} else {
-		this.velocity.setX(Vx);
-	}
+	// if (Cx == -1 && Vx <= 0) {
+	// 	this.velocity.setX(0);
+	// } else if (Cx == 1 && Vx >= 0) {
+	// 	this.velocity.setX(0);
+	// } else {
+	// 	this.velocity.setX(Vx);
+	// }
 
-	if (Cz == -1 && Vz <= 0) {
-		this.velocity.setZ(0);
-	} else if (Cz == 1 && Vz >= 0) {
-		this.velocity.setZ(0);
-	} else {
-		this.velocity.setZ(Vz);
-	}
+	// if (Cz == -1 && Vz <= 0) {
+	// 	this.velocity.setZ(0);
+	// } else if (Cz == 1 && Vz >= 0) {
+	// 	this.velocity.setZ(0);
+	// } else {
+	// 	this.velocity.setZ(Vz);
+	// }
 }
 
-THREE.MovingMesh.prototype.updatePosition = function () {
+THREE.PlayerMesh.prototype.updatePosition = function () {
 	this.CollisionCheck();
 	this.updateVelocity();
 
 	var dT = this.clock.getDelta();
-	var Px = this.position.x + this.velocity.x*dT;
+	// var Px = this.position.x + this.velocity.x*dT;
 	var Py = this.position.y + this.velocity.y*dT;
-	var Pz = this.position.z + this.velocity.z*dT;
+	// var Pz = this.position.z + this.velocity.z*dT;
 
 	if (Py < this.platformHeight) {
 		this.position.setY(this.platformHeight);
@@ -111,7 +126,7 @@ THREE.MovingMesh.prototype.updatePosition = function () {
 	}	
 }
 
-THREE.MovingMesh.prototype.CollisionCheck = function () {
+THREE.PlayerMesh.prototype.CollisionCheck = function () {
 	this.collisions.set(0,0,0);
 
 	for (i = 0; i < this.rays.length; i += 1) {

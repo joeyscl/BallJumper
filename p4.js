@@ -8,10 +8,7 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setClearColor(0xBBBBBBB);
 document.body.appendChild(renderer.domElement);
-     // for the mouse operation
-//document.addEventListener('mouseDown', onDocumentMouseDown, false);
-//document.addEventListener('mouseDown', onDocumentMouseDown, false);
-//document.addEventListener('mouseDown', onDocumentMouseDown, false);
+
 
   // setting up window resize and adaptation
 function resize() {
@@ -38,7 +35,7 @@ resize();
 var ballSize = 10;
 var geometry = new THREE.SphereGeometry(ballSize, 32, 32);
 var material = new THREE.MeshPhongMaterial( {specular: "#ff5555", color: "#ff0000", emissive: "#ff0000", side: THREE.DoubleSide} );
-var ball = new THREE.MovingMesh(geometry, material, ballSize);
+var ball = new THREE.PlayerMesh(geometry, material, ballSize);
 ball.position.set(0,100,0);
 scene.add(ball);
 
@@ -103,16 +100,16 @@ function keyboardCallBack() {
 	 var delta = clock.getDelta();
 	 var distanceMoved = 100 * delta;
 
-	 if(keyboard.pressed("W")){
+	 if(keyboard.pressed("W")  && ball.collisions.z != -1){
 	 	 ball.translateZ (-distanceMoved);
 	 }
-	 if(keyboard.pressed("A") && ball.collisions.x == 0){
+	 if(keyboard.pressed("A") && ball.collisions.x != -1){
 	 	ball.translateX(-distanceMoved);
    }
-   if(keyboard.pressed("S")){
+   if(keyboard.pressed("S")  && ball.collisions.z != 1){
       ball.translateZ (distanceMoved);
 	 }
-   if(keyboard.pressed("D") && ball.collisions.x == 0){
+   if(keyboard.pressed("D") && ball.collisions.x != 1){
    	ball.translateX(distanceMoved);	 
   }
 }
@@ -126,7 +123,6 @@ keyboard.domElement.addEventListener('keydown', onKeyDown );
 
 
 var render = function() {
- // controls.update();
  ball.updatePosition();
  keyboardCallBack();
  requestAnimationFrame(render);
