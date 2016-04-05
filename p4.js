@@ -31,20 +31,20 @@ scene.add( light );
 window.addEventListener('resize',resize);
 resize();
   
-// add ball/player
-var ballSize = 10;
-var geometry = new THREE.SphereGeometry(ballSize, 32, 32);
-var material = new THREE.MeshPhongMaterial( {specular: "#ff5555", color: "#ff0000", emissive: "#ff0000", side: THREE.DoubleSide} );
-var ball = new THREE.PlayerMesh(geometry, material, ballSize);
-ball.position.set(0,100,0);
-scene.add(ball);
+// add player/player
+var playerSize = 10;
+var geometry = new THREE.SphereGeometry(playerSize, 32, 32);
+var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/ballTexture.jpg') } );
+var player = new THREE.PlayerMesh(geometry, material);
+player.position.set(0,100,0);
+scene.add(player);
 
 // setting up the camera:
 var aspect = window.innerWidth/window.innerHeight;
 var camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 20000);
 camera.position.set(100,250,350);
 camera.lookAt(scene.position); 
-ball.add(camera);
+player.add(camera);
 
 // setting controls
 var controls = new THREE.OrbitControls(camera);
@@ -52,8 +52,8 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.25;
 controls.enableZoom = false;
 
-// array to track obstacles
-var obstacles = [];
+// array to track allObstacles
+var allObstacles = [];
 
 // floor from p3 used
 var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
@@ -62,27 +62,35 @@ floorTexture.repeat.set(10, 10);
 var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 var floorGeometry = new THREE.PlaneGeometry(400, 400, 10, 10);
 var floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.position.y = -1 + ballSize;
+floor.position.y = -1 + playerSize;
 floor.rotation.x = Math.PI / 2;
 scene.add(floor);
 
-obstacles.push(floor);
+allObstacles.push(floor);
 
 //test obstacle
 var geometry = new THREE.BoxGeometry( 100, 40, 100 );
 var material = new THREE.MeshNormalMaterial();
-var cube = new THREE.Mesh( geometry, material );
+var cube = new THREE.PlatformMesh( geometry, material );
 cube.position.set(100,30,0);
 scene.add(cube);
-obstacles.push(cube);
+allObstacles.push(cube);
 
 //test obstacle
 var geometry = new THREE.BoxGeometry( 100, 40, 100 );
 var material = new THREE.MeshNormalMaterial();
-var cube = new THREE.Mesh( geometry, material );
+var cube = new THREE.PlatformMesh( geometry, material );
+cube.position.set(-100,30,0);
+scene.add(cube);
+allObstacles.push(cube);
+
+//test obstacle
+var geometry = new THREE.BoxGeometry( 100, 40, 100 );
+var material = new THREE.MeshNormalMaterial();
+var cube = new THREE.PlatformMesh( geometry, material );
 cube.position.set(0,150,0);
 scene.add(cube);
-obstacles.push(cube);
+allObstacles.push(cube);
 	
 // first person camera. 
 THREE.FirstPersonControls = function (){
@@ -99,32 +107,72 @@ var clock = new THREE.Clock(true);
 function keyboardCallBack() {
 	 var delta = clock.getDelta();
 	 var distanceMoved = 100 * delta;
+   // var angleRotated = distanceMoved/player.size;
 
-	 if(keyboard.pressed("W")  && ball.collisions.z != -1){
-	 	 ball.translateZ (-distanceMoved);
+	 if(keyboard.pressed("W")  && player.collisions.z != -1){
+	 	 player.translateZ (-distanceMoved);
 	 }
-	 if(keyboard.pressed("A") && ball.collisions.x != -1){
-	 	ball.translateX(-distanceMoved);
+	 if(keyboard.pressed("A") && player.collisions.x != -1){
+	 	player.translateX(-distanceMoved);
    }
-   if(keyboard.pressed("S")  && ball.collisions.z != 1){
-      ball.translateZ (distanceMoved);
+   if(keyboard.pressed("S")  && player.collisions.z != 1){
+      player.translateZ (distanceMoved);
 	 }
-   if(keyboard.pressed("D") && ball.collisions.x != 1){
-   	ball.translateX(distanceMoved);	 
+   if(keyboard.pressed("D") && player.collisions.x != 1){
+   	player.translateX(distanceMoved);	 
   }
 }
 
 function onKeyDown(event) {
   if(keyboard.eventMatches(event,"space")){
-    ball.jump();
+    player.jump();
   }
 }
 keyboard.domElement.addEventListener('keydown', onKeyDown );
 
+function moveAllPlatforms() {
+  // the 0th obstacle is the floor, so start from 1
+  for (i = 1; i < allObstacles.length -1; i++) {
+    allObstacles[i].movePlatform();
+  }
+}
+
+//add new platform when player reaches the highest platform
+function addNewPlatform() {
+  if (player.position.y >= allObstacles[allObstacles.length-1].position.y)  {
+    var geometry = new THREE.BoxGeometry( 100, 40, 100 );
+    var material = new THREE.MeshNormalMaterial();
+    var cube = new THREE.PlatformMesh( geometry, material );
+
+    newPos = newPlatformPosition();
+    cube.position.set(newPos.x,newPos.y,newPos.z);
+    scene.add(cube);
+    allObstacles.push(cube);
+    newPlatformPosition();
+  }
+}
+
+// generates position of the new platform using the current highest platform
+function newPlatformPosition() {
+  //position of the highest platform
+  var oldPos = allObstacles[allObstacles.length-1].position;
+
+  var radius = Math.random()*75 + 75;
+  var angle1 = Math.random()*360;
+
+  var x = radius * Math.cos(angle1);
+  var z = radius * Math.sin(angle1);
+  var y = Math.random()* 50 + 75 + oldPos.y;
+  console.log(x,y,z);
+  return new THREE.Vector3(x,y,z);
+}
 
 var render = function() {
- ball.updatePosition();
+ player.updatePosition();
  keyboardCallBack();
+ moveAllPlatforms()
+ addNewPlatform();
+ cube.movePlatform();
  requestAnimationFrame(render);
  renderer.render(scene, camera);
 };
