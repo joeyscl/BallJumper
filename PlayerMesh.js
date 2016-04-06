@@ -69,7 +69,7 @@ THREE.PlayerMesh.prototype.constructor = THREE.PlayerMesh;
 THREE.PlayerMesh.prototype.jump = function () {
 	var Vy = this.velocity.y
 	if (this.jumpCounter < this.maxJumps) {
-		this.velocity.setY(300);
+		this.velocity.setY(350);
 		this.jumpCounter += 1;
 	}	
 }
