@@ -16,12 +16,51 @@ var container = document.getElementById('maincontent');
 container.appendChild(renderer.domElement);
 
 
-  // setting up window resize and adaptation
 function resize() {
-	windowWidth = window.innerWidth;
-	windowHeight = window.innerHeight;
-    renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth,window.innerHeight);
 }
+//SCROLLBAR FUNCTION DISABLE
+window.onscroll = function () {
+     window.scrollTo(0,0);
+   }
+
+
+// SKYBOX/BACKGROUND
+// tutorial and code from http://blog.romanliutikov.com/post/58705840698/skybox-and-environment-map-in-threejs
+var urls = [
+  // Images from http://opengameart.org/content/forest-skyboxes
+  'images/skybox/px.jpg',
+  'images/skybox/nx.jpg',
+  'images/skybox/px.jpg',
+  'images/skybox/py.jpg',
+  'images/skybox/pz.jpg',
+  'images/skybox/pz.jpg'
+  ];
+
+var cubemap = THREE.ImageUtils.loadTextureCube(urls); // load textures
+cubemap.format = THREE.RGBFormat;
+
+var shader = THREE.ShaderLib['cube']; // init cube shader from built-in lib
+shader.uniforms['tCube'].value = cubemap; // apply textures to shader
+
+// create shader material
+var skyBoxMaterial = new THREE.ShaderMaterial( {
+  fragmentShader: shader.fragmentShader,
+  vertexShader: shader.vertexShader,
+  uniforms: shader.uniforms,
+  depthWrite: false,
+  side: THREE.BackSide
+});
+
+// create skybox mesh
+var skybox = new THREE.Mesh(
+  new THREE.CubeGeometry(1000, 1000, 1000),
+  skyBoxMaterial
+);
+
+scene.add(skybox);
+
+
 
 // arrays to track allObstacles and allParticles
 var allObstacles = [];
@@ -183,7 +222,7 @@ var highestScore = 0;
 var render = function() {
   player.updatePosition();
   keyboardCallBack();
-  moveAllParticles();
+  updateAllParticles();
   addNewPlatform();
   moveAllPlatforms()
   requestAnimationFrame(render);

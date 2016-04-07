@@ -208,7 +208,7 @@ function makeManyParticles(numberOfParticles, size) {
 }
 
 
-function moveAllParticles() {
+function updateAllParticles() {
     for (var i = 0; i < allParticles.length; i++) {
         allParticles[i].updatePosition();
     }
