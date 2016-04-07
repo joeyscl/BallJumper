@@ -61,6 +61,8 @@ THREE.PlayerMesh = function ( geometry, material, size) {
 
 	this.drawMode = THREE.TrianglesDrawMode;
 	this.updateMorphTargets();
+
+	this.score = 0;
 };
 
 THREE.PlayerMesh.prototype = Object.create( THREE.Mesh.prototype);

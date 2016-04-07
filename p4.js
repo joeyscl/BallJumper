@@ -122,11 +122,37 @@ function onKeyDown(event) {
 keyboard.domElement.addEventListener('keydown', onKeyDown );
 
 
+var filterStrength = 20;
+var frameTime = 0, lastLoop = new Date, thisLoop;
+var highestScore = 0;
+
 var render = function() {
  ball.updatePosition();
  keyboardCallBack();
  requestAnimationFrame(render);
  renderer.render(scene, camera);
+
+ var thisFrameTime = (thisLoop=new Date) - lastLoop;
+ frameTime+= (thisFrameTime - frameTime) / filterStrength;
+ lastLoop = thisLoop;
 };
+
+(function(window, document, undefined){
+window.onload = init;
+
+  function init(){
+    var fpsOut = document.getElementById('fps');
+setInterval(function(){
+  fpsOut.innerHTML = (1000/frameTime).toFixed(1) + " fps";
+  document.getElementById('fps').innerHTML = "frame rate: " + (1000/frameTime).toFixed(1) + " fps";
+
+	highestScore = Math.max(highestScore, ball.position.y); 
+  document.getElementById('highest').innerHTML = "highest height: " + highestScore.toFixed(1);
+
+  document.getElementById('current').innerHTML = "current height: " + ball.position.y.toFixed(1);
+},100);
+  }
+     
+})(window, document, undefined);
 
 render();
