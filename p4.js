@@ -12,6 +12,9 @@ document.body.appendChild(renderer.domElement);
 renderer.shadowMapEnabled = true;
 renderer.shadowMapSoft = true;
 
+var container = document.getElementById('maincontent');
+container.appendChild(renderer.domElement);
+
 
   // setting up window resize and adaptation
 function resize() {
@@ -42,17 +45,7 @@ ball.position.set(0,0,0);
 ball.castShadow = true;
 player.add(ball);
 
-// add particle
-// var particleSize = 5;
-// var geometry = new THREE.SphereGeometry(particleSize, 32, 32);
-// var material = new THREE.MeshNormalMaterial();
-// var particle = new THREE.ParticleMesh(geometry, material, genVelocity());
-// particle.position.set(50,100,0);
-// allParticles.push(particle);
-// scene.add(particle);
-makeManyParticles(5);
-
-
+makeManyParticles(20,5);
 
 //directional light
 var directionalLight = new THREE.DirectionalLight(0xffffff);
@@ -168,16 +161,24 @@ function keyboardCallBack() {
 function onKeyDown(event) {
   if(keyboard.eventMatches(event,"space")){
     player.jump();
-    makeExplosion(10);
   }
   if(keyboard.eventMatches(event,"L")){
     directionalLight.visible = !directionalLight.visible;
     ambLight.visible = !ambLight.visible;
   }
+  if(keyboard.eventMatches(event,"P")){
+  	for (i=0; i<allParticles.length; i++){
+    	scene.remove(allParticles[i]);		
+  	}
+  } 
 }
 keyboard.domElement.addEventListener('keydown', onKeyDown );
 
 
+
+var filterStrength = 20;
+var frameTime = 0, lastLoop = new Date, thisLoop;
+var highestScore = 0;
 
 var render = function() {
   player.updatePosition();
@@ -185,9 +186,30 @@ var render = function() {
   moveAllParticles();
   addNewPlatform();
   moveAllPlatforms()
-  cube.movePlatform();
   requestAnimationFrame(render);
   renderer.render(scene, camera);
+
+ var thisFrameTime = (thisLoop=new Date) - lastLoop;
+ frameTime+= (thisFrameTime - frameTime) / filterStrength;
+ lastLoop = thisLoop;
 };
+
+(function(window, document, undefined){
+window.onload = init;
+
+function init(){
+    var fpsOut = document.getElementById('fps');
+setInterval(function(){
+  fpsOut.innerHTML = (1000/frameTime).toFixed(1) + " fps";
+  document.getElementById('fps').innerHTML = "Frame Rate: " + (1000/frameTime).toFixed(1) + " fps";
+
+	highestScore = Math.max(highestScore, ball.position.y); 
+  document.getElementById('highest').innerHTML = "Current Height: " + highestScore.toFixed(1);
+
+  document.getElementById('current').innerHTML = "Best Height: " + ball.position.y.toFixed(1);
+},100);
+  }
+     
+})(window, document, undefined);
 
 render();

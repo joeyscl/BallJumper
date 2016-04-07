@@ -18,7 +18,7 @@ THREE.ParticleMesh = function (geometry, material,velocity) {
     this.bounceFactor = 0.5;
     this.slowFactor = 0.99;
 
-    this.floorHeight = this.size*2 + 1.1;
+    this.floorHeight = this.size*4;
     this.platformHeight = this.floorHeight;
 
 
@@ -131,9 +131,26 @@ THREE.ParticleMesh.prototype.CollisionCheck = function () {
       // We reset the raycaster to this direction
       this.caster.set(this.position, this.rays[i]);
       // Test if we intersect with any obstacle mesh
-      collisions = this.caster.intersectObjects(allObstacles.concat([player],allParticles));
+      collisions = this.caster.intersectObjects(allObstacles.slice(0,3).concat([player],allParticles));
       // And flag for collision if we do
       if (collisions.length > 0 && collisions[0].distance <= this.size) {
+
+        // change velocity as result of impact
+        if (collisions[0].object.type == "PlayerMesh" || collisions[0].object.type == "ParticleMesh") {
+
+            var colObj = collisions[0].object;
+            var BF = this.bounceFactor;
+            var size1 = Math.pow(this.size,3);
+            var size2 = Math.pow(colObj.size,3);
+            var BF = Math.min(BF * size2/size1, 3);
+
+            var collisionSpeed = colObj.velocity.length();
+            var normal = collisions[0].face.normal;
+            this.velocity.setX(normal.x*collisionSpeed*BF);
+            this.velocity.setY(normal.y*collisionSpeed*BF);
+            this.velocity.setZ(normal.z*collisionSpeed*BF);
+        }  
+
         if ([0,12,13,15,17].indexOf(i) != -1) {
             this.collisions.setY(-1);
             this.platformHeight = collisions[0].point.y; //set height of current platform
@@ -157,28 +174,7 @@ THREE.ParticleMesh.prototype.CollisionCheck = function () {
         } else if ([5,6,8,10,12].indexOf(i) != -1) {
             this.collisions.setZ(1);
             this.translateZ(-(this.size-collisions[0].distance));   //shift player so it's just touching the edge 
-        }
-
-        // change velocity as result of impact
-        if (collisions[0].object.type == "PlayerMesh" || collisions[0].object.type == "ParticleMesh") {
-
-            var colObj = collisions[0].object;
-            var BF = this.bounceFactor;
-            var size1 = Math.pow(this.size,3);
-            var size2 = Math.pow(colObj.size,3);
-            var BF = Math.min(BF * size2/size1, 3);
-
-            // var collisionV = colObj.velocity;
-            // this.velocity.setX(collisionV.x*BF);
-            // this.velocity.setY(collisionV.y*BF);
-            // this.velocity.setZ(collisionV.z*BF);
-
-            var collisionSpeed = colObj.velocity.length();
-            var normal = collisions[0].face.normal;
-            this.velocity.setX(normal.x*collisionSpeed*BF);
-            this.velocity.setY(normal.y*collisionSpeed*BF);
-            this.velocity.setZ(normal.z*collisionSpeed*BF);
-        }        
+        }      
 
       } else { // no collisions so the ball is allowed to fall
         this.platformHeight = this.floorHeight;
@@ -187,7 +183,7 @@ THREE.ParticleMesh.prototype.CollisionCheck = function () {
 }
 
 function genVelocity() {
-    var v = Math.random()*50 + 50;
+    var v = Math.random()*75 + 75;
     var angle1 = Math.random()*2*Math.PI;
     var angle2 = Math.random()*Math.PI/2;
 
@@ -195,13 +191,12 @@ function genVelocity() {
     var Vz = v* Math.sin(angle2)*Math.sin(angle1);
     var Vy = v* Math.cos(angle2);
 
-    return new THREE.Vector3(Vx,0,Vz);
+    return new THREE.Vector3(Vx,Vy,Vz);
 }
 
 
-function makeManyParticles(size) {
+function makeManyParticles(numberOfParticles, size) {
 
-    var numberOfParticles = 30;
     for (i = 0; i < numberOfParticles; i++) {
         var geometry = new THREE.SphereGeometry(size, 16, 16);
         var material = new THREE.MeshNormalMaterial();
@@ -214,34 +209,7 @@ function makeManyParticles(size) {
 
 
 function moveAllParticles() {
-    allParticles[0].updatePosition();
-    allParticles[1].updatePosition();
-    allParticles[2].updatePosition();
-    allParticles[3].updatePosition();
-    allParticles[4].updatePosition();
-    allParticles[5].updatePosition();
-    allParticles[6].updatePosition();
-    allParticles[7].updatePosition();
-    allParticles[8].updatePosition();
-    allParticles[9].updatePosition();
-    allParticles[10].updatePosition();
-    allParticles[11].updatePosition();
-    allParticles[12].updatePosition();
-    allParticles[13].updatePosition();
-    allParticles[14].updatePosition();
-    allParticles[15].updatePosition();
-    allParticles[16].updatePosition();
-    allParticles[17].updatePosition();
-    allParticles[18].updatePosition();
-    allParticles[19].updatePosition();
-    allParticles[20].updatePosition();
-    allParticles[21].updatePosition();
-    allParticles[22].updatePosition();
-    allParticles[23].updatePosition();
-    allParticles[24].updatePosition();
-    allParticles[25].updatePosition();
-    allParticles[26].updatePosition();
-    allParticles[27].updatePosition();
-    allParticles[28].updatePosition();
-    allParticles[29].updatePosition();
+    for (var i = 0; i < allParticles.length; i++) {
+        allParticles[i].updatePosition();
+    }
 }

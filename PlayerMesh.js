@@ -17,7 +17,7 @@ THREE.PlayerMesh = function (geometry, material) {
 	this.jumpCounter = 0;	// current number of jumps
 	this.jumpV = 350;		// jump velocity
 	this.gravity = -600;	// acceleration downwards
-	this.maxV = 600			// max velocity in any direction
+	this.maxV = 800		// max velocity in any direction
 
 	this.floorHeight = this.size*2-1.1;
 	this.platformHeight = this.floorHeight;
@@ -62,6 +62,8 @@ THREE.PlayerMesh = function (geometry, material) {
 
 	this.drawMode = THREE.TrianglesDrawMode;
 	this.updateMorphTargets();
+
+	this.score = 0;
 };
 
 THREE.PlayerMesh.prototype = Object.create( THREE.Mesh.prototype);
