@@ -1,5 +1,5 @@
 // CPSC 314 Final project: 
-// Game name: 
+// Game name: BallJumper
 
 var scene = new THREE.Scene();
 
@@ -20,7 +20,12 @@ function resize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// add ball/player
+// arrays to track allObstacles and allParticles
+var allObstacles = [];
+var allParticles = [];
+
+
+// add player
 var playerSize = 10;
 var geometry = new THREE.SphereGeometry(playerSize, 32, 32);
 var material = new THREE.MeshBasicMaterial( {wireframe: true, opacity: 0.0, transparent: true})
@@ -28,7 +33,7 @@ var player = new THREE.PlayerMesh(geometry, material);
 player.position.set(0,100,0);
 scene.add(player);
 
-// add ball/player
+// add ball
 var ballSize = 10;
 var geometry = new THREE.SphereGeometry(ballSize, 32, 32);
 var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/ballTexture.jpg') } );
@@ -37,25 +42,41 @@ ball.position.set(0,0,0);
 ball.castShadow = true;
 player.add(ball);
 
+// add particle
+// var particleSize = 5;
+// var geometry = new THREE.SphereGeometry(particleSize, 32, 32);
+// var material = new THREE.MeshNormalMaterial();
+// var particle = new THREE.ParticleMesh(geometry, material, genVelocity());
+// particle.position.set(50,100,0);
+// allParticles.push(particle);
+// scene.add(particle);
+makeManyParticles(5);
+
+
 
 //directional light
 var directionalLight = new THREE.DirectionalLight(0xffffff);
-directionalLight.position.set(500, 1000, 500);
-directionalLight.target.position.set(0, 0, 0);
+directionalLight.position.set(50000, 100000, 50000);
+directionalLight.lookAt(player.position); 
 
 directionalLight.castShadow = true;
 directionalLight.shadowDarkness = 0.75;
-// directionalLight.shadowCameraVisible = true;
+directionalLight.shadowCameraVisible = true;
 
-directionalLight.shadowCameraNear = 0;
-directionalLight.shadowCameraFar = 1500;
+directionalLight.shadowCameraNear = 10000;
+directionalLight.shadowCameraFar = 150000;
 
-directionalLight.shadowCameraLeft = -500;
-directionalLight.shadowCameraRight = 500;
-directionalLight.shadowCameraTop = 500;
-directionalLight.shadowCameraBottom = -500;
+directionalLight.shadowCameraLeft = -1000;
+directionalLight.shadowCameraRight = 1000;
+directionalLight.shadowCameraTop = 1000;
+directionalLight.shadowCameraBottom = -1000;
   
 player.add(directionalLight);
+
+
+var ambLight = new THREE.AmbientLight(0xBBBBBB); // soft white light
+ambLight.visible = false;
+scene.add( ambLight );
 
 
 // EVENT LISTENER RESIZE
@@ -75,15 +96,13 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.25;
 controls.enableZoom = false;
 
-// array to track allObstacles
-var allObstacles = [];
 
 // floor from p3 used
-var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
+var floorTexture = new THREE.ImageUtils.loadTexture( 'images/grass2.jpg' );
 floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
-floorTexture.repeat.set(10, 10);
+floorTexture.repeat.set(8,8);
 var floorMaterial = new THREE.MeshPhongMaterial( { map: floorTexture, side: THREE.DoubleSide } );
-var floorGeometry = new THREE.PlaneGeometry(400, 400, 10, 10);
+var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
 var floor = new THREE.Mesh(floorGeometry, floorMaterial);
 floor.position.y = -1 + playerSize;
 floor.rotation.x = Math.PI / 2;
@@ -92,36 +111,23 @@ floor.receiveShadow = true
 floor.receiveShadow = true;
 allObstacles.push(floor);
 
-//test obstacle
-var geometry = new THREE.BoxGeometry( 100, 40, 100 );
-var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/crate.jpg') } );
-var cube = new THREE.PlatformMesh( geometry, material );
+//starting obstacle
+var cube = makePlatform();
 cube.position.set(100,30,0);
 scene.add(cube);
-cube.castShadow = true;
-cube.receiveShadow = true;
 allObstacles.push(cube);
 
-//test obstacle
-var geometry = new THREE.BoxGeometry( 100, 40, 100 );
-var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/crate.jpg') } );
-var cube = new THREE.PlatformMesh( geometry, material );
+var cube = makePlatform();
 cube.position.set(-100,30,0);
 scene.add(cube);
-cube.castShadow = true;
-cube.receiveShadow = true;
 allObstacles.push(cube);
 
-//test obstacle
-var geometry = new THREE.BoxGeometry( 100, 40, 100 );
-var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/crate.jpg') } );
-var cube = new THREE.PlatformMesh( geometry, material );
+var cube = makePlatform();
 cube.position.set(0,150,0);
 scene.add(cube);
-cube.castShadow = true;
-cube.receiveShadow = true;
 allObstacles.push(cube);
-	
+
+
 // adding an object
 var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock(true);
@@ -132,93 +138,56 @@ function keyboardCallBack() {
 	 var distanceMoved = 100 * delta;
    var angleRotated = distanceMoved/player.size;
 
-
 	 if(keyboard.pressed("W")  && player.collisions.z != -1){
     player.translateZ(-distanceMoved);
+    player.velocity.setZ(-100);
     ball.rotateX(-angleRotated);
 	 }
 	 if(keyboard.pressed("A") && player.collisions.x != -1){
 	 	player.translateX(-distanceMoved);
+    player.velocity.setX(-100);
     ball.rotateZ(angleRotated);
    }
    if(keyboard.pressed("S")  && player.collisions.z != 1){
       player.translateZ (distanceMoved);
+      player.velocity.setZ(100);
       ball.rotateX(angleRotated);
 	 }
    if(keyboard.pressed("D") && player.collisions.x != 1){
    	player.translateX(distanceMoved);
+    player.velocity.setX(100);
     ball.rotateZ(-angleRotated);	 
+  }
+
+  if(!keyboard.pressed("W") && !keyboard.pressed("A") && !keyboard.pressed("S") && !keyboard.pressed("D")) {
+    player.velocity.setX(0);
+    player.velocity.setZ(0);
   }
 }
 
 function onKeyDown(event) {
   if(keyboard.eventMatches(event,"space")){
     player.jump();
+    makeExplosion(10);
+  }
+  if(keyboard.eventMatches(event,"L")){
+    directionalLight.visible = !directionalLight.visible;
+    ambLight.visible = !ambLight.visible;
   }
 }
 keyboard.domElement.addEventListener('keydown', onKeyDown );
 
-function moveAllPlatforms() {
-  // the 0th obstacle is the floor, so start from 1
-  for (i = 1; i < allObstacles.length -1; i++) {
-    allObstacles[i].movePlatform();
-  }
-}
 
-//add new platform when player reaches the highest platform
-function addNewPlatform() {
-  
-  var platPos = allObstacles[allObstacles.length-1].position
-  var platSize = allObstacles[allObstacles.length-1].geometry.boundingSphere.radius;
-  //only add new platform if player is above highest playform
-  if ( (player.position.y >= platPos.y) &&
-    (Math.abs(player.position.x - platPos.x) <= platSize) && 
-    (Math.abs(player.position.z - platPos.z) <= platSize) ) {
-
-    var geometry = new THREE.BoxGeometry( 100, 40, 100 );
-    var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/crate.jpg') } );
-    var cube = new THREE.PlatformMesh( geometry, material );
-    cube.castShadow = true;
-    cube.receiveShadow = true;
-
-    newPos = newPlatformPosition();
-    cube.position.set(newPos.x,newPos.y,newPos.z);
-    scene.add(cube);
-    allObstacles.push(cube);
-    newPlatformPosition();
-  }
-}
-
-// generates position of the new platform using the current highest platform
-function newPlatformPosition() {
-  //position of the highest platform
-  var platPos = allObstacles[allObstacles.length-1].position;
-
-  var radius = Math.random()*75 + 75;
-  var angle1 = Math.random()*360;https://www.facebook.com/#
-
-  var x = radius * Math.cos(angle1);
-  var z = radius * Math.sin(angle1);
-
-  var y;
-  if (radius > 125) {
-    y = Math.random()* 25 + 75 + platPos.y;
-  } else if (radius > 100){
-    y = Math.random()* 40 + 75 + platPos.y;
-  } else {
-    y = Math.random()* 60 + 75 + platPos.y;
-  }
-  return new THREE.Vector3(x,y,z);
-}
 
 var render = function() {
- player.updatePosition();
- keyboardCallBack();
- moveAllPlatforms()
- addNewPlatform();
- cube.movePlatform();
- requestAnimationFrame(render);
- renderer.render(scene, camera);
+  player.updatePosition();
+  keyboardCallBack();
+  moveAllParticles();
+  addNewPlatform();
+  moveAllPlatforms()
+  cube.movePlatform();
+  requestAnimationFrame(render);
+  renderer.render(scene, camera);
 };
 
 render();
