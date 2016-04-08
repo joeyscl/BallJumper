@@ -31,10 +31,10 @@ var urls = [
   // Images from http://opengameart.org/content/forest-skyboxes
   'images/skybox/px.jpg',
   'images/skybox/nx.jpg',
-  'images/skybox/px.jpg',
   'images/skybox/py.jpg',
+  'images/skybox/ny.jpg',
   'images/skybox/pz.jpg',
-  'images/skybox/pz.jpg'
+  'images/skybox/nz.jpg'
   ];
 
 var cubemap = THREE.ImageUtils.loadTextureCube(urls); // load textures
@@ -54,13 +54,10 @@ var skyBoxMaterial = new THREE.ShaderMaterial( {
 
 // create skybox mesh
 var skybox = new THREE.Mesh(
-  new THREE.CubeGeometry(1000, 1000, 1000),
+  new THREE.CubeGeometry(10000, 10000, 10000),
   skyBoxMaterial
 );
-
-scene.add(skybox);
-
-
+skybox.rotation.x = Math.PI / 2;
 
 // arrays to track allObstacles and allParticles
 var allObstacles = [];
@@ -74,6 +71,7 @@ var material = new THREE.MeshBasicMaterial( {wireframe: true, opacity: 0.0, tran
 var player = new THREE.PlayerMesh(geometry, material);
 player.position.set(0,100,0);
 scene.add(player);
+player.add(skybox);
 
 // add ball
 var ballSize = 10;
@@ -83,8 +81,6 @@ var ball = new THREE.Mesh(geometry, material);
 ball.position.set(0,0,0);
 ball.castShadow = true;
 player.add(ball);
-
-makeManyParticles(20,5);
 
 //directional light
 var directionalLight = new THREE.DirectionalLight(0xffffff);
@@ -118,7 +114,7 @@ resize();
 // setting up the camera:
 var aspect = window.innerWidth/window.innerHeight;
 var camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 20000);
-camera.position.set(100,250,350);
+camera.position.set(150,200,500);
 camera.lookAt(scene.position); 
 player.add(camera);
 
@@ -159,6 +155,7 @@ cube.position.set(0,150,0);
 scene.add(cube);
 allObstacles.push(cube);
 
+makeManyParticles(20,5);
 
 // adding an object
 var keyboard = new THREEx.KeyboardState();
@@ -212,6 +209,62 @@ function onKeyDown(event) {
   } 
 }
 keyboard.domElement.addEventListener('keydown', onKeyDown );
+
+
+
+// Picking Functionality
+var mouseVector = new THREE.Vector3();
+var rayCaster = new THREE.Raycaster();
+var intersects, particleToRemove;
+
+window.addEventListener('click', onDocumentMouseDown);
+
+function onDocumentMouseDown(e) {
+
+  mouseVector.setX(  2 * (e.clientX / container.clientWidth) - 1  );
+  mouseVector.setY(  1 - 2 * (e.clientY / container.clientHeight)  );
+
+  rayCaster.setFromCamera( mouseVector.clone(), camera );
+  intersects = rayCaster.intersectObjects(allParticles, recursive=false);
+  console.log(mouseVector);
+
+
+  if (intersects.length > 0) {
+    particleToRemove = intersects[0].object;    
+    var index = allParticles.indexOf(particleToRemove);
+    if (index > -1) {
+      scene.remove(allParticles[index]);
+      allParticles.splice(index, 1);
+    }
+  }
+}
+
+
+
+
+
+// Picking Functionality
+var mouseVector = new THREE.Vector3();
+var rayCaster = new THREE.Raycaster();
+var intersects, particleToRemove;
+
+window.addEventListener('click', checkIfPotion);
+
+function checkIfPotion(e) {
+  mouseVector.x = 2 * (e.clientX / container.clientWidth) - 1;
+  mouseVector.y = 1 - 2 * (e.clientY / container.clientHeight);
+  
+  rayCaster.setFromCamera( mouseVector.clone(), camera);
+  intersects = rayCaster.intersectObjects(allParticles, recursive=true);
+  if (intersects.length > 0) {
+    particleToRemove = intersects[0].object;    
+    var index = allParticles.indexOf(particleToRemove);
+    if (index > -1) {
+      scene.remove(allParticles[i]);
+      allParticles.splice(index, 1);
+    }
+  }
+}
 
 
 

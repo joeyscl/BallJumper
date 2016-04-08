@@ -121,6 +121,12 @@ THREE.ParticleMesh.prototype.updatePosition = function () {
 
     var Pz = this.position.z + this.velocity.z*dT;
     this.position.setZ(Pz);
+
+ //    if (this.clock.getElapsedTime() > 30) {
+	// 	var index = allParticles.indexOf(this);
+	// 	allParticles.splice(index,1);
+	// 	this.visible = false;
+	// }
 }
 
 THREE.ParticleMesh.prototype.CollisionCheck = function () {
@@ -201,7 +207,7 @@ function makeManyParticles(numberOfParticles, size) {
         var geometry = new THREE.SphereGeometry(size, 16, 16);
         var material = new THREE.MeshNormalMaterial();
         var particle = new THREE.ParticleMesh(geometry, material, genVelocity());
-        particle.position.set(Math.random()*50,Math.random()*50+250,Math.random()*50);
+        particle.position.set(Math.random()*50,Math.random()*50+300,Math.random()*50);
         allParticles.push(particle);
         scene.add(particle);
     }
