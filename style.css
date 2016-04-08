@@ -7,9 +7,24 @@ body {
     position: relative;
 }
 
+.top {    
+	position: absolute;
+    left: 45%;
+    font-size: 36px;
+    color: yellow;
+    visibility: hidden;
+}
+
 .topright {
     position: absolute;
     top: 8px;
+    right: 16px;
+    font-size: 36px;
+}
+
+.toplowerright {
+    position: absolute;
+    top: 45px;
     right: 16px;
     font-size: 36px;
 }
@@ -27,6 +42,7 @@ body {
 
 #info {
 	position: absolute;
+	color: white;
 	bottom: 0px; width: 100%;
 	padding: 15px;
 	z-index:100;
@@ -35,6 +51,7 @@ body {
 
 #stats {
 	position: absolute;
+	color: black;
 	padding: 15px;
 	float: left;
 	z-index:100;

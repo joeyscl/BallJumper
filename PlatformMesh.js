@@ -23,10 +23,7 @@ THREE.PlatformMesh = function (geometry, material) {
 	}
 
 	this.moveDirection = Math.floor(Math.random() * 5); // 0,1 = stationary, 2 = move X, 3 = move Y, 4 = move Z
-	//avoid having 2 UP/DOWN platforms in a row
-	while (allObstacles[allObstacles.length-1].moveDirection == 3 && this.moveDirection ==3) {
-		this.moveDirection = Math.floor(Math.random() * 5);
-	}
+
 	
 	this.drawMode = THREE.TrianglesDrawMode;
 	this.updateMorphTargets();
@@ -63,9 +60,10 @@ THREE.PlatformMesh.prototype.movePlatform = function () {
 // FUNCTIONS
 
 function moveAllPlatforms() {
-  // the 0th obstacle is the floor, so start from 1
-  for (i = 1; i <= allObstacles.length -1; i++) {
-    allObstacles[i].movePlatform();
+  for (i = 0; i <= allObstacles.length -1; i++) {
+  	if (allObstacles[i].type == "PlatformMesh") {
+  		allObstacles[i].movePlatform();
+  	}    
   }
 }
 

@@ -27,14 +27,15 @@ window.onscroll = function () {
 
 // SKYBOX/BACKGROUND
 // tutorial and code from http://blog.romanliutikov.com/post/58705840698/skybox-and-environment-map-in-threejs
+var prefix = 'images/skybox/'
 var urls = [
   // Images from http://opengameart.org/content/forest-skyboxes
-  'images/skybox/px.jpg',
-  'images/skybox/nx.jpg',
-  'images/skybox/py.jpg',
-  'images/skybox/ny.jpg',
-  'images/skybox/pz.jpg',
-  'images/skybox/nz.jpg'
+  prefix +'px.jpg',
+  prefix +'nx.jpg',
+  prefix +'py.jpg',
+  prefix +'ny.jpg',
+  prefix +'pz.jpg',
+  prefix +'nz.jpg'
   ];
 
 var cubemap = THREE.ImageUtils.loadTextureCube(urls); // load textures
@@ -54,76 +55,19 @@ var skyBoxMaterial = new THREE.ShaderMaterial( {
 
 // create skybox mesh
 var skybox = new THREE.Mesh(
-  new THREE.CubeGeometry(10000, 10000, 10000),
+  new THREE.CubeGeometry(2000, 2000, 2000),
   skyBoxMaterial
 );
 skybox.rotation.x = Math.PI / 2;
-
-// arrays to track allObstacles and allParticles
-var allObstacles = [];
-var allParticles = [];
-
-
-// add player
-var playerSize = 10;
-var geometry = new THREE.SphereGeometry(playerSize, 32, 32);
-var material = new THREE.MeshBasicMaterial( {wireframe: true, opacity: 0.0, transparent: true})
-var player = new THREE.PlayerMesh(geometry, material);
-player.position.set(0,100,0);
-scene.add(player);
-player.add(skybox);
-
-// add ball
-var ballSize = 10;
-var geometry = new THREE.SphereGeometry(ballSize, 32, 32);
-var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/ballTexture.jpg') } );
-var ball = new THREE.Mesh(geometry, material);
-ball.position.set(0,0,0);
-ball.castShadow = true;
-player.add(ball);
-
-//directional light
-var directionalLight = new THREE.DirectionalLight(0xffffff);
-directionalLight.position.set(50000, 100000, 50000);
-directionalLight.lookAt(player.position); 
-
-directionalLight.castShadow = true;
-directionalLight.shadowDarkness = 0.75;
-directionalLight.shadowCameraVisible = true;
-
-directionalLight.shadowCameraNear = 10000;
-directionalLight.shadowCameraFar = 150000;
-
-directionalLight.shadowCameraLeft = -1000;
-directionalLight.shadowCameraRight = 1000;
-directionalLight.shadowCameraTop = 1000;
-directionalLight.shadowCameraBottom = -1000;
-  
-player.add(directionalLight);
-
-
-var ambLight = new THREE.AmbientLight(0xBBBBBB); // soft white light
-ambLight.visible = false;
-scene.add( ambLight );
 
 
 // EVENT LISTENER RESIZE
 window.addEventListener('resize',resize);
 resize();
 
-// setting up the camera:
-var aspect = window.innerWidth/window.innerHeight;
-var camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 20000);
-camera.position.set(150,200,500);
-camera.lookAt(scene.position); 
-player.add(camera);
-
-// setting controls
-var controls = new THREE.OrbitControls(camera);
-controls.enableDamping = true;
-controls.dampingFactor = 0.25;
-controls.enableZoom = false;
-
+// arrays to track allObstacles and allParticles
+var allObstacles = [];
+var allParticles = [];
 
 // floor from p3 used
 var floorTexture = new THREE.ImageUtils.loadTexture( 'images/grass2.jpg' );
@@ -132,14 +76,55 @@ floorTexture.repeat.set(8,8);
 var floorMaterial = new THREE.MeshPhongMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
 var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+var playerSize = 10;      //the size of the ball we're going to play
 floor.position.y = -1 + playerSize;
 floor.rotation.x = Math.PI / 2;
-floor.receiveShadow = true
-;scene.add(floor);
+floor.receiveShadow = true;
+scene.add(floor);
 floor.receiveShadow = true;
 allObstacles.push(floor);
 
-//starting obstacle
+
+//bounding fence/box
+var text = THREE.ImageUtils.loadTexture('images/hedge.jpg');
+text.wrapS = text.wrapT = THREE.RepeatWrapping;
+text.repeat.set( 20,1 );
+var material = new THREE.MeshPhongMaterial( { map: text} );
+
+var geometry = new THREE.BoxGeometry( 1000, 15, 10 );
+var fence = new THREE.Mesh( geometry, material );
+fence.position.set(0,10,-500);
+fence.castShadow = true;
+fence.receiveShadow = true;
+allObstacles.push(fence);
+scene.add(fence)
+
+var geometry = new THREE.BoxGeometry( 1000, 15, 10 );
+var fence = new THREE.Mesh( geometry, material );
+fence.position.set(0,10,500);
+fence.castShadow = true;
+fence.receiveShadow = true;
+allObstacles.push(fence);
+scene.add(fence)
+
+var geometry = new THREE.BoxGeometry( 10, 15, 1000 );
+var fence = new THREE.Mesh( geometry, material );
+fence.position.set(-500,10,0);
+fence.castShadow = true;
+fence.receiveShadow = true;
+allObstacles.push(fence);
+scene.add(fence)
+
+var geometry = new THREE.BoxGeometry( 10, 15, 1000 );
+var fence = new THREE.Mesh( geometry, material );
+fence.position.set(500,10,0);
+fence.castShadow = true;
+fence.receiveShadow = true;
+allObstacles.push(fence);
+scene.add(fence)
+
+
+//starting platforms
 var cube = makePlatform();
 cube.position.set(100,30,0);
 scene.add(cube);
@@ -155,7 +140,83 @@ cube.position.set(0,150,0);
 scene.add(cube);
 allObstacles.push(cube);
 
-makeManyParticles(20,5);
+makeManyParticles(10,5);
+
+
+// add player (this is invisible)
+var geometry = new THREE.SphereGeometry(playerSize, 32, 32);
+var material = new THREE.MeshBasicMaterial( {wireframe: true, opacity: 0.0, transparent: true})
+var player = new THREE.PlayerMesh(geometry, material);
+player.position.set(0,400,200);
+scene.add(player);
+player.add(skybox);
+
+// add ball (the actual ball you can see)
+var ballSize = 10;
+var geometry = new THREE.SphereGeometry(ballSize, 32, 32);
+var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('images/ballTexture.jpg') } );
+var ball = new THREE.Mesh(geometry, material);
+ball.position.set(0,0,0);
+ball.castShadow = true;
+ball.receiveShadow = true;
+player.add(ball);
+
+
+// setting up the camera:
+var aspect = window.innerWidth/window.innerHeight;
+var camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 20000);
+camera.position.set(150,200,500);
+camera.lookAt(scene.position); 
+player.add(camera);
+
+  // setting controls
+ var controls = new THREE.OrbitControls(camera);
+ controls.enableDamping = true;
+ controls.dampingFactor = 0.25;
+ controls.enableZoom = false;
+
+
+//directional light
+var directionalLight = new THREE.DirectionalLight(0xffffff);
+directionalLight.position.set(-5000, 5000, 5000);
+directionalLight.target = player;
+directionalLight.lookAt(player.position); 
+
+directionalLight.castShadow = true;
+directionalLight.shadowDarkness = 0.75;
+directionalLight.shadowCameraVisible = true;
+
+directionalLight.shadowCameraNear = 5000;
+directionalLight.shadowCameraFar = 10000;
+
+directionalLight.shadowCameraLeft = -500;
+directionalLight.shadowCameraRight = 500;
+directionalLight.shadowCameraTop = 500;
+directionalLight.shadowCameraBottom = -500;
+  
+player.add(directionalLight);
+
+
+// spotlight
+var spotLight = new THREE.SpotLight( 0xffffff );
+spotLight.intensity = 0.01;
+spotLight.position.set( 100, 1000, 100 );
+
+spotLight.castShadow = true;
+
+spotLight.shadowMapWidth = 1024;
+spotLight.shadowMapHeight = 1024;
+
+spotLight.shadowCameraNear = 500;
+spotLight.shadowCameraFar = 4000;
+spotLight.shadowCameraFov = 30;
+
+player.add( spotLight );
+
+// ambient light
+var ambLight = new THREE.AmbientLight(0xBBBBBB);
+ambLight.visible = false;
+player.add( ambLight );
 
 // adding an object
 var keyboard = new THREEx.KeyboardState();
@@ -194,19 +255,11 @@ function keyboardCallBack() {
   }
 }
 
+var lightMode = 0;
 function onKeyDown(event) {
   if(keyboard.eventMatches(event,"space")){
     player.jump();
   }
-  if(keyboard.eventMatches(event,"L")){
-    directionalLight.visible = !directionalLight.visible;
-    ambLight.visible = !ambLight.visible;
-  }
-  if(keyboard.eventMatches(event,"P")){
-  	for (i=0; i<allParticles.length; i++){
-    	scene.remove(allParticles[i]);		
-  	}
-  } 
 }
 keyboard.domElement.addEventListener('keydown', onKeyDown );
 
@@ -226,20 +279,13 @@ function onDocumentMouseDown(e) {
 
   rayCaster.setFromCamera( mouseVector.clone(), camera );
   intersects = rayCaster.intersectObjects(allParticles, recursive=false);
-  console.log(mouseVector);
-
+  // console.log(mouseVector);
 
   if (intersects.length > 0) {
     particleToRemove = intersects[0].object;    
-    var index = allParticles.indexOf(particleToRemove);
-    if (index > -1) {
-      scene.remove(allParticles[index]);
-      allParticles.splice(index, 1);
-    }
+    removeParticle(particleToRemove);
   }
 }
-
-
 
 
 
@@ -248,9 +294,9 @@ var mouseVector = new THREE.Vector3();
 var rayCaster = new THREE.Raycaster();
 var intersects, particleToRemove;
 
-window.addEventListener('click', checkIfPotion);
+window.addEventListener('click', mouseClicked);
 
-function checkIfPotion(e) {
+function mouseClicked(e) {
   mouseVector.x = 2 * (e.clientX / container.clientWidth) - 1;
   mouseVector.y = 1 - 2 * (e.clientY / container.clientHeight);
   
@@ -276,12 +322,31 @@ function getHighestScore() {
   var newHigh = localStorage.getItem("highest score");
   highestScore = newHigh >= 0? newHigh:0;
 }
-
 getHighestScore();
 
 
-/* Snow */
+/* Toggle Lights */
+var lightMode = 0
+document.getElementById("light").onclick = function() {
+  if (lightMode == 0) {
+    directionalLight.intensity = 0.1;
+    ambLight.visible = true;
+    spotLight.intensity = 0.1;
+    lightMode = 1;
+  } else if (lightMode == 1) {
+    directionalLight.intensity = 0.1;
+    ambLight.visible = false;
+    spotLight.intensity = 1;
+    lightMode = 2;
+  } else if (lightMode == 2) {
+    directionalLight.intensity = 1;
+    ambLight.visible = false;
+    spotLight.intensity = 0.1;
+    lightMode = 0;
+  }
+}
 
+/* Snow */
 var pMaterial = new THREE.PointCloudMaterial({
   color: 0xFFFFFF,
   size: 10,
@@ -293,57 +358,58 @@ var pMaterial = new THREE.PointCloudMaterial({
    transparent: true
 });
 
-var particleCount = 10;
+var snowCount = 10;
 
-var particles = new THREE.Geometry();
+var snows = new THREE.Geometry();
 
 function populate() {
 
-for (var i = 0; i < particleCount; i++) {
-    var pX = Math.random()*500 - 250,
-    pY = Math.random()*500 - 250,
-    pZ = Math.random()*500 - 250,
-    particle = new THREE.Vector3(pX, pY, pZ);
-    particle.velocity = {};
-    particle.velocity.y = 0;
-    particles.vertices.push(particle);
-}
+  for (var i = 0; i < snowCount; i++) {
+      var pX = Math.random()*1000,
+      pY = Math.random()*1000,
+      pZ = Math.random()*1000,
+      snow = new THREE.Vector3(pX, pY, pZ);
+      snow.velocity = {};
+      snow.velocity.y = 0;
+      snows.vertices.push(snow);
+  }
 }
 
 populate();
 
-var particleSystem = new THREE.PointCloud(particles, pMaterial);
-scene.add(particleSystem);
+var snowSystem = new THREE.PointCloud(snows, pMaterial);
+scene.add(snowSystem);
 
 var simulateSnow = function(){
-  var pCount = particleCount;
+  var pCount = snowCount;
   while (pCount--) {
-    var particle = particles.vertices[pCount];
-    if (particle.y < -200) {
-      particle.y = 200;
-      particle.velocity.y = 0;
+    var snow = snows.vertices[pCount];
+    if (snow.y < -400) {
+      snow.y = 600;
+      snow.velocity.y = 0;
     }
 
-    particle.velocity.y -= Math.random() * .02;
+    snow.velocity.y -= Math.random() * .02;
 
-    particle.y += particle.velocity.y;
+    snow.y += snow.velocity.y;
   }
 
-  particles.verticesNeedUpdate = true;
+  snows.verticesNeedUpdate = true;
 };
 
 document.getElementById("snow").onclick = function() {
-  scene.remove(particleSystem);
-  if (particleCount < 10000) {
-    particleCount = particleCount*10;
+  snowSystem.visible = false;
+  scene.remove(snowSystem);
+  if (snowCount < 10000) {
+    snowCount = snowCount*5;
   }
   else {
-    particleCount = 10;
+    snowCount = 100;
   }
-  particles = new THREE.Geometry();
+  snows = new THREE.Geometry();
   populate();
-  particleSystem = new THREE.PointCloud(particles, pMaterial);
-  scene.add(particleSystem);
+  snowSystem = new THREE.PointCloud(snows, pMaterial);
+  player.add(snowSystem);
 }
 
 /*//////////////////////////*/
@@ -356,17 +422,21 @@ var render = function() {
   moveAllPlatforms()
   requestAnimationFrame(render);
 
-  particleSystem.rotation.y += 0.01;
+  snowSystem.rotation.y += 0.01;
   simulateSnow();
 
   renderer.render(scene, camera);
 
- var thisFrameTime = (thisLoop=new Date) - lastLoop;
- frameTime+= (thisFrameTime - frameTime) / filterStrength;
- lastLoop = thisLoop;
+  var thisFrameTime = (thisLoop=new Date) - lastLoop;
+  frameTime+= (thisFrameTime - frameTime) / filterStrength;
+  lastLoop = thisLoop;
 
-
-
+  if (allParticles.length == 0) {
+    player.gravity = -450;
+    player.jumpV = 450;
+    player.maxJumps = 3;
+    document.getElementById('cheats').style.visibility = "visible";
+  }
 };
 
 (function(window, document, undefined){
@@ -387,10 +457,18 @@ setInterval(function(){
      
 })(window, document, undefined);
 
+function restartGame() {
+  localStorage.setItem("highest score", highestScore);
+  window.location.reload();
+}
 
 document.getElementById("restart").onclick = function() {
-  localStorage.setItem("highest score", highestScore);
-  window.location.reload()
+  restartGame()
+}
+
+document.getElementById("resetHS").onclick = function() {
+  localStorage.setItem("highest score", 0);
+  window.location.reload();
 }
 
 render();

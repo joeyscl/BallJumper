@@ -110,7 +110,15 @@ THREE.PlayerMesh.prototype.updatePosition = function () {
 		this.position.setY(this.platformHeight);
 	} else {
 		this.position.setY(Py);
-	}	
+	}
+	if ( (Math.abs(this.position.x)>500) || (Math.abs(this.position.z)>500) ) {
+		this.floorHeight = - 50000;
+		if (this.position < -500) {
+			this.maxV = -10000;
+		}
+	} else if (this.position.y >= 0) {
+		this.floorHeight = this.size*2-1.1;
+	}
 }
 
 THREE.PlayerMesh.prototype.CollisionCheck = function () {

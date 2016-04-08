@@ -122,22 +122,25 @@ THREE.ParticleMesh.prototype.updatePosition = function () {
     var Pz = this.position.z + this.velocity.z*dT;
     this.position.setZ(Pz);
 
- //    if (this.clock.getElapsedTime() > 30) {
-	// 	var index = allParticles.indexOf(this);
-	// 	allParticles.splice(index,1);
-	// 	this.visible = false;
-	// }
+    if ( (Math.abs(this.position.x)>500) || (Math.abs(this.position.z)>500) ) {
+        this.floorHeight = - 10000;
+    }
+
+    if (this.position.y <= -1000){
+        removeParticle(this);
+    }
+
+
 }
 
 THREE.ParticleMesh.prototype.CollisionCheck = function () {
     this.collisions.set(0,0,0);
 
-
     for (i = 0; i < this.rays.length; i += 1) {
       // We reset the raycaster to this direction
       this.caster.set(this.position, this.rays[i]);
       // Test if we intersect with any obstacle mesh
-      collisions = this.caster.intersectObjects(allObstacles.slice(0,3).concat([player],allParticles));
+      collisions = this.caster.intersectObjects(allObstacles.concat([player],allParticles));
       // And flag for collision if we do
       if (collisions.length > 0 && collisions[0].distance <= this.size) {
 
@@ -213,9 +216,16 @@ function makeManyParticles(numberOfParticles, size) {
     }
 }
 
-
 function updateAllParticles() {
     for (var i = 0; i < allParticles.length; i++) {
         allParticles[i].updatePosition();
+    }
+}
+
+function removeParticle(toBeRemoved) {
+    var index = allParticles.indexOf(toBeRemoved);
+    if (index > -1) {
+      scene.remove(allParticles[index]);
+      allParticles.splice(index, 1);
     }
 }
