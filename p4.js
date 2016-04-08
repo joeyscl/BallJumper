@@ -219,6 +219,82 @@ var filterStrength = 20;
 var frameTime = 0, lastLoop = new Date, thisLoop;
 var highestScore = 0;
 
+function getHighestScore() {
+  var newHigh = localStorage.getItem("highest score");
+  highestScore = newHigh >= 0? newHigh:0;
+}
+
+getHighestScore();
+
+
+/* Snow */
+
+var pMaterial = new THREE.PointCloudMaterial({
+  color: 0xFFFFFF,
+  size: 10,
+  map: THREE.ImageUtils.loadTexture(
+     'images/snow.png'
+   ),
+   blending: THREE.AdditiveBlending,
+   depthTest: false,
+   transparent: true
+});
+
+var particleCount = 10;
+
+var particles = new THREE.Geometry();
+
+function populate() {
+
+for (var i = 0; i < particleCount; i++) {
+    var pX = Math.random()*500 - 250,
+    pY = Math.random()*500 - 250,
+    pZ = Math.random()*500 - 250,
+    particle = new THREE.Vector3(pX, pY, pZ);
+    particle.velocity = {};
+    particle.velocity.y = 0;
+    particles.vertices.push(particle);
+}
+}
+
+populate();
+
+var particleSystem = new THREE.PointCloud(particles, pMaterial);
+scene.add(particleSystem);
+
+var simulateSnow = function(){
+  var pCount = particleCount;
+  while (pCount--) {
+    var particle = particles.vertices[pCount];
+    if (particle.y < -200) {
+      particle.y = 200;
+      particle.velocity.y = 0;
+    }
+
+    particle.velocity.y -= Math.random() * .02;
+
+    particle.y += particle.velocity.y;
+  }
+
+  particles.verticesNeedUpdate = true;
+};
+
+document.getElementById("snow").onclick = function() {
+  scene.remove(particleSystem);
+  if (particleCount < 10000) {
+    particleCount = particleCount*10;
+  }
+  else {
+    particleCount = 10;
+  }
+  particles = new THREE.Geometry();
+  populate();
+  particleSystem = new THREE.PointCloud(particles, pMaterial);
+  scene.add(particleSystem);
+}
+
+/*//////////////////////////*/
+
 var render = function() {
   player.updatePosition();
   keyboardCallBack();
@@ -226,11 +302,18 @@ var render = function() {
   addNewPlatform();
   moveAllPlatforms()
   requestAnimationFrame(render);
+
+  particleSystem.rotation.y += 0.01;
+  simulateSnow();
+
   renderer.render(scene, camera);
 
  var thisFrameTime = (thisLoop=new Date) - lastLoop;
  frameTime+= (thisFrameTime - frameTime) / filterStrength;
  lastLoop = thisLoop;
+
+
+
 };
 
 (function(window, document, undefined){
@@ -242,13 +325,19 @@ setInterval(function(){
   fpsOut.innerHTML = (1000/frameTime).toFixed(1) + " fps";
   document.getElementById('fps').innerHTML = "Frame Rate: " + (1000/frameTime).toFixed(1) + " fps";
 
-	highestScore = Math.max(highestScore, ball.position.y); 
-  document.getElementById('highest').innerHTML = "Current Height: " + highestScore.toFixed(1);
+	highestScore = Math.max(highestScore, player.position.y); 
+  document.getElementById('highest').innerHTML = "Best Height: " + highestScore.toFixed(1);
 
-  document.getElementById('current').innerHTML = "Best Height: " + ball.position.y.toFixed(1);
+  document.getElementById('current').innerHTML = "Current Height: " + player.position.y.toFixed(1);
 },100);
   }
      
 })(window, document, undefined);
+
+
+document.getElementById("restart").onclick = function() {
+  localStorage.setItem("highest score", highestScore);
+  window.location.reload()
+}
 
 render();

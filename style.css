@@ -3,11 +3,22 @@ body {
 	overflow: hidden;
  }
 
+.container {
+    position: relative;
+}
+
+.topright {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    font-size: 36px;
+}
+
 #maincontent {
 	margin: 0px;
 	color: #ffffff;
 	font-family:Monospace;
-	text-align: center;
+	/*text-align: center;*/
 	font-size: 15px;
 	line-height: 30px;
 	width: 100%;
