@@ -27,35 +27,12 @@ THREE.ParticleMesh = function (geometry, material,velocity) {
 	this.collisions = new THREE.Vector3(0,0,0);
 
 	// Set the rays : one vector for every potential direction
-    this.rays = [
-    //rays for checking collision in Y (up/down) 
-    new THREE.Vector3(0, -1, 0),
-    new THREE.Vector3(0, 1, 0),
 
-    //rays for checking collision in X
-    new THREE.Vector3(-1, 0, 0),
-    new THREE.Vector3(1, 0, 0),
-
-    //rays for checking collision in Z
-    new THREE.Vector3(0, 0, -1),
-    new THREE.Vector3(0, 0, 1), 
-
-    // diagonal directions
-    new THREE.Vector3(1, 0, 1),
-    new THREE.Vector3(1, 0, -1),
-    new THREE.Vector3(-1, 0, 1),
-    new THREE.Vector3(-1, 0, -1),
-
-    new THREE.Vector3(0, 1, 1),
-    new THREE.Vector3(0, 1, -1),
-    new THREE.Vector3(0, -1, 1),
-    new THREE.Vector3(0, -1, -1),
-
-    new THREE.Vector3(1, 1, 0),
-    new THREE.Vector3(1, -1, 0),
-    new THREE.Vector3(-1, 1, 0),
-    new THREE.Vector3(-1, -1, 0)
-	];
+    var dirs = [[-1, -1, -1], [-1, -1, 0], [-1, -1, 1], [-1, 0, -1], [-1, 0, 0], [-1, 0, 1], [-1, 1, -1], [-1, 1, 0], [-1, 1, 1], [0, -1, -1], [0, -1, 0], [0, -1, 1], [0, 0, -1], [0, 0, 0], [0, 0, 1], [0, 1, -1], [0, 1, 0], [0, 1, 1], [1, -1, -1], [1, -1, 0], [1, -1, 1], [1, 0, -1], [1, 0, 0], [1, 0, 1], [1, 1, -1], [1, 1, 0], [1, 1, 1]];
+    this.rays = [];
+    for (var i = 0; i < dirs.length; i++) {
+        this.rays.push(new THREE.Vector3(dirs[i][0],dirs[i][1],dirs[i][2]));
+    }
 
 	// And the "RayCaster", able to test for intersections
     this.caster = new THREE.Raycaster();
@@ -160,27 +137,27 @@ THREE.ParticleMesh.prototype.CollisionCheck = function () {
             this.velocity.setZ(normal.z*collisionSpeed*BF);
         }  
 
-        if ([0,12,13,15,17].indexOf(i) != -1) {
+        if ([0, 1, 2, 9, 10, 11, 18, 19, 20].indexOf(i) != -1) {            //collision in -y
             this.collisions.setY(-1);
             this.platformHeight = collisions[0].point.y; //set height of current platform
             this.translateY(this.size-collisions[0].distance);      //shift player so it's just touching the edge 
-        } else if ([1,10,11,14,16].indexOf(i) != -1) {
+        } else if ([6, 7, 8, 15, 16, 17, 24, 25, 26].indexOf(i) != -1) {    //collision in y
             this.collisions.setY(1);
             this.translateY(-(this.size-collisions[0].distance));   //shift player so it's just touching the edge 
         }
 
-        if ([2,8,9,16,17].indexOf(i) != -1) {           
+        if ([0, 1, 2, 3, 4, 5, 6, 7, 8].indexOf(i) != -1) {                //collision in -x
             this.collisions.setX(-1);
             this.translateX(this.size-collisions[0].distance);      //shift player so it's just touching the edge 
-        } else if ([3,6,7,14,15].indexOf(i) != -1) {
+        } else if ([18, 19, 20, 21, 22, 23, 24, 25, 26].indexOf(i) != -1) { //collision in x
             this.collisions.setX(1);
             this.translateX(-(this.size-collisions[0].distance));   //shift player so it's just touching the edge 
         }
 
-        if ([4,7,9,11,13].indexOf(i) != -1) {
+        if ([0, 3, 6, 9, 12, 15, 18, 21, 24].indexOf(i) != -1) {            //collision in -z
             this.collisions.setZ(-1);
             this.translateZ(this.size-collisions[0].distance);      //shift player so it's just touching the edge 
-        } else if ([5,6,8,10,12].indexOf(i) != -1) {
+        } else if ([2, 5, 8, 11, 14, 17, 20, 23, 26].indexOf(i) != -1) {    //collision in z
             this.collisions.setZ(1);
             this.translateZ(-(this.size-collisions[0].distance));   //shift player so it's just touching the edge 
         }      

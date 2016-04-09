@@ -55,7 +55,7 @@ var skyBoxMaterial = new THREE.ShaderMaterial( {
 
 // create skybox mesh
 var skybox = new THREE.Mesh(
-  new THREE.CubeGeometry(2000, 2000, 2000),
+  new THREE.CubeGeometry(5000, 5000, 5000),
   skyBoxMaterial
 );
 skybox.rotation.x = Math.PI / 2;
@@ -86,9 +86,9 @@ allObstacles.push(floor);
 
 
 //bounding fence/box
-var text = THREE.ImageUtils.loadTexture('images/hedge.jpg');
+var text = THREE.ImageUtils.loadTexture('images/flower2.jpg');
 text.wrapS = text.wrapT = THREE.RepeatWrapping;
-text.repeat.set( 20,1 );
+text.repeat.set( 40,1 );
 var material = new THREE.MeshPhongMaterial( { map: text} );
 
 var geometry = new THREE.BoxGeometry( 1000, 15, 10 );
@@ -183,7 +183,6 @@ directionalLight.target = player;
 directionalLight.lookAt(player.position); 
 
 directionalLight.castShadow = true;
-directionalLight.shadowDarkness = 0.75;
 directionalLight.shadowCameraVisible = true;
 
 directionalLight.shadowCameraNear = 5000;
@@ -193,13 +192,14 @@ directionalLight.shadowCameraLeft = -500;
 directionalLight.shadowCameraRight = 500;
 directionalLight.shadowCameraTop = 500;
 directionalLight.shadowCameraBottom = -500;
+
+directionalLight.shadowDarkness = 0.75;
   
 player.add(directionalLight);
 
 
 // spotlight
 var spotLight = new THREE.SpotLight( 0xffffff );
-spotLight.intensity = 0.01;
 spotLight.position.set( 100, 1000, 100 );
 
 spotLight.castShadow = true;
@@ -211,7 +211,11 @@ spotLight.shadowCameraNear = 500;
 spotLight.shadowCameraFar = 4000;
 spotLight.shadowCameraFov = 30;
 
+spotLight.intensity = 0.25;
+spotLight.shadowDarkness = 0.5;
+
 player.add( spotLight );
+
 
 // ambient light
 var ambLight = new THREE.AmbientLight(0xBBBBBB);
@@ -328,21 +332,28 @@ getHighestScore();
 /* Toggle Lights */
 var lightMode = 0
 document.getElementById("light").onclick = function() {
-  if (lightMode == 0) {
-    directionalLight.intensity = 0.1;
-    ambLight.visible = true;
-    spotLight.intensity = 0.1;
-    lightMode = 1;
-  } else if (lightMode == 1) {
-    directionalLight.intensity = 0.1;
-    ambLight.visible = false;
-    spotLight.intensity = 1;
-    lightMode = 2;
-  } else if (lightMode == 2) {
+  lightMode += 1;
+  lightMode %= 4;
+  if (lightMode == 0) {               // dir + spot
     directionalLight.intensity = 1;
     ambLight.visible = false;
-    spotLight.intensity = 0.1;
-    lightMode = 0;
+    spotLight.intensity = .25;
+    spotLight.shadowDarkness = .5;
+  } else if (lightMode == 1) {        // dir
+    directionalLight.intensity = 1;
+    ambLight.visible = false;
+    spotLight.intensity = 0;
+    spotLight.shadowDarkness = 0;
+  } else if (lightMode == 2) {        // ambient
+    directionalLight.intensity = 0;
+    ambLight.visible = true;
+    spotLight.intensity = 0;
+    spotLight.shadowDarkness = 0;
+  } else if (lightMode == 3) {        //only spot
+    directionalLight.intensity = 0;
+    ambLight.visible = false;
+    spotLight.intensity = 1;
+    spotLight.shadowDarkness = .75;
   }
 }
 
